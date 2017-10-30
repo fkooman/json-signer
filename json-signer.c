@@ -6,6 +6,7 @@
 #include <json.h>
 #include <time.h>
 #include <bsd/string.h>
+#include <basedir.h>
 
 int main(int argc, char *argv[argc + 1])
 {
@@ -13,8 +14,14 @@ int main(int argc, char *argv[argc + 1])
         perror("unable to initialize libsodium");
         return EXIT_FAILURE;
     }
+
     // check if private key exists
-    const gchar *userDataDir = g_get_user_data_dir();
+    xdgHandle handle;
+    if (!xdgInitHandle(&handle)) {
+        perror("unable to init xdg");
+        return EXIT_FAILURE;
+    }
+    const char *userDataDir = xdgDataHome(&handle);
 
     // keyFiles
     const size_t BUF_SIZE = 128;
