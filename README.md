@@ -11,17 +11,17 @@ Install the required dependencies.
 
 ## Fedora
     
-    $ sudo dnf install glib2-devel json-c-devel libsodium-devel meson git gcc
+    $ sudo dnf install json-c-devel libsodium-devel libxdg-basedir-devel meson git gcc
 
 ## CentOS
     
 Enable EPEL repository first.
 
-    $ sudo yum install glib2-devel json-c-devel libsodium-devel meson git gcc
+    $ sudo yum install json-c-devel libsodium-devel libxdg-basedir-devel meson git gcc
 
 ## Debian
 
-    $ sudo apt install build-essential meson libsodium-dev libjson-c-dev libglib2.0-dev
+    $ sudo apt install libjson-c-dev libsodium-dev libxdg-basedir-dev build-essential meson git
 
 # Building
 
@@ -38,7 +38,5 @@ Enable EPEL repository first.
 
 - create the XDG data directory on first use, now required to do that manually;
 - actually test it;
-- no longer depend on `glib-2.0`
-  - need to find good libraries for base64 and XDG;
 - make sure it doesn't leak memory;
 - static code analysis;
