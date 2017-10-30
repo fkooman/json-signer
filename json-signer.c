@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sodium.h>
-#include <glib.h>
 #include <string.h>
 #include <json.h>
 #include <time.h>
-#include <bsd/string.h>
 #include <basedir.h>
+#include "base64.h"
 
 int main(int argc, char *argv[argc + 1])
 {
@@ -29,10 +28,10 @@ int main(int argc, char *argv[argc + 1])
     char secretKeyFile[BUF_SIZE] = "\0";
     char publicKeyFile[BUF_SIZE] = "\0";
 
-    strlcat(secretKeyFile, userDataDir, BUF_SIZE);
-    strlcat(secretKeyFile, "/json-signer/secret.key", BUF_SIZE);
-    strlcat(publicKeyFile, userDataDir, BUF_SIZE);
-    strlcat(publicKeyFile, "/json-signer/public.key", BUF_SIZE);
+    strncat(secretKeyFile, userDataDir, BUF_SIZE);
+    strncat(secretKeyFile, "/json-signer/secret.key", BUF_SIZE);
+    strncat(publicKeyFile, userDataDir, BUF_SIZE);
+    strncat(publicKeyFile, "/json-signer/public.key", BUF_SIZE);
 
     unsigned char pk[crypto_sign_PUBLICKEYBYTES];
     unsigned char sk[crypto_sign_SECRETKEYBYTES];
@@ -109,11 +108,15 @@ int main(int argc, char *argv[argc + 1])
     unsigned char sig[crypto_sign_BYTES];
     crypto_sign_detached(sig, NULL, data, fsize, sk);
     free(data);
-    gchar *b64sig = g_base64_encode(sig, crypto_sign_BYTES);
-    f = fopen(g_strjoin("", argv[1], ".sig", NULL), "w");
+
+    char* b64sig;
+    base64_encode(sig, crypto_sign_BYTES, &b64sig);
+    char signatureFile[BUF_SIZE] = "\0";
+    strncat(signatureFile, argv[1], BUF_SIZE);
+    strncat(signatureFile, ".sig", BUF_SIZE);
+    f = fopen(signatureFile, "w");
     fwrite(b64sig, crypto_sign_BYTES, 1, f);
     fclose(f);
-    g_free(b64sig);
 
     return EXIT_SUCCESS;
 }
