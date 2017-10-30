@@ -4,6 +4,7 @@
 #include <glib.h>
 #include <string.h>
 #include <json.h>
+#include <time.h>
 
 int main(int argc, char *argv[argc + 1])
 {
@@ -67,9 +68,14 @@ int main(int argc, char *argv[argc + 1])
     json_object_object_get_ex(jobj, "seq", &jobj2);
     int seq = json_object_get_int(jobj2);
     json_object_object_add(jobj, "seq", json_object_new_int(++seq));
+
+
+
     // calculate and format current time
-    GDateTime *dateTime = g_date_time_new_now_utc();
-    gchar *dateTimeStr = g_date_time_format(dateTime, "%F %T");
+    time_t t = time(NULL);
+    char dateTimeStr[20];
+    strftime(dateTimeStr, 20, "%F %T", gmtime(&t));
+
     json_object_object_add(jobj, "signed_at",
                            json_object_new_string(dateTimeStr));
     const char *output = json_object_to_json_string(jobj);
