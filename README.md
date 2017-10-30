@@ -1,7 +1,7 @@
 # Introduction
 
 **EXPERIMENTAL** reimplementation of 
-[php-json-signer](https://github.com/fkooman/php-json-signer).
+[php-json-signer](https://github.com/fkooman/php-json-signer) in C.
 
 **DO NOT USE**
 
