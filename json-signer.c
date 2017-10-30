@@ -13,7 +13,6 @@ int main(int argc, char *argv[argc + 1])
         perror("unable to initialize libsodium");
         return EXIT_FAILURE;
     }
-
     // check if private key exists
     xdgHandle handle;
     if (!xdgInitHandle(&handle)) {
@@ -109,7 +108,7 @@ int main(int argc, char *argv[argc + 1])
     crypto_sign_detached(sig, NULL, data, fsize, sk);
     free(data);
 
-    char* b64sig;
+    char *b64sig;
     base64_encode(sig, crypto_sign_BYTES, &b64sig);
     char signatureFile[BUF_SIZE] = "\0";
     strncat(signatureFile, argv[1], BUF_SIZE);
