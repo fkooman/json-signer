@@ -24,8 +24,10 @@ int main(int argc, char *argv[argc + 1])
     // keyFiles
     const size_t BUF_SIZE = 128;
 
-    char secretKeyFile[BUF_SIZE] = "\0";
-    char publicKeyFile[BUF_SIZE] = "\0";
+    char secretKeyFile[BUF_SIZE];
+    secretKeyFile[0] = 0;
+    char publicKeyFile[BUF_SIZE];
+    publicKeyFile[0] = 0;
 
     strncat(secretKeyFile, userDataDir, BUF_SIZE);
     strncat(secretKeyFile, "/json-signer/secret.key", BUF_SIZE);
@@ -110,7 +112,8 @@ int main(int argc, char *argv[argc + 1])
 
     char *b64sig;
     base64_encode(sig, crypto_sign_BYTES, &b64sig);
-    char signatureFile[BUF_SIZE] = "\0";
+    char signatureFile[BUF_SIZE];
+    signatureFile[0] = 0;
     strncat(signatureFile, argv[1], BUF_SIZE);
     strncat(signatureFile, ".sig", BUF_SIZE);
     f = fopen(signatureFile, "w");
