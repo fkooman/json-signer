@@ -5,6 +5,7 @@
 #include <string.h>
 #include <json.h>
 #include <time.h>
+#include <bsd/string.h>
 
 int main(int argc, char *argv[argc + 1])
 {
@@ -14,11 +15,17 @@ int main(int argc, char *argv[argc + 1])
     }
     // check if private key exists
     const gchar *userDataDir = g_get_user_data_dir();
-    // keyFile
-    gchar *secretKeyFile =
-        g_strjoin("/", userDataDir, "json-signer", "secret.key", NULL);
-    gchar *publicKeyFile =
-        g_strjoin("/", userDataDir, "json-signer", "public.key", NULL);
+
+    // keyFiles
+    const size_t BUF_SIZE = 128;
+
+    char secretKeyFile[BUF_SIZE] = "\0";
+    char publicKeyFile[BUF_SIZE] = "\0";
+
+    strlcat(secretKeyFile, userDataDir, BUF_SIZE);
+    strlcat(secretKeyFile, "/json-signer/secret.key", BUF_SIZE);
+    strlcat(publicKeyFile, userDataDir, BUF_SIZE);
+    strlcat(publicKeyFile, "/json-signer/public.key", BUF_SIZE);
 
     unsigned char pk[crypto_sign_PUBLICKEYBYTES];
     unsigned char sk[crypto_sign_SECRETKEYBYTES];
@@ -44,9 +51,6 @@ int main(int argc, char *argv[argc + 1])
         fread(sk, crypto_sign_SECRETKEYBYTES, 1, secretKey);
         fclose(secretKey);
     }
-
-    g_free(secretKeyFile);
-    g_free(publicKeyFile);
 
     // open the JSON file
     if (2 > argc) {
