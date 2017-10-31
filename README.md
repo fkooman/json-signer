@@ -41,9 +41,3 @@ You can also use [Clang](https://clang.llvm.org/), for that use:
 # Usage
 
     $ build/json-signer file.json
-
-# TODO
-
-- create the XDG data directory on first use, now required to do that manually;
-- make sure it doesn't leak memory;
-- static code analysis;

@@ -5,7 +5,10 @@
 #include <json.h>
 #include <time.h>
 #include <basedir.h>
+#include <basedir_fs.h>
 #include <resolv.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 int main(int argc, char *argv[argc + 1])
 {
@@ -19,7 +22,18 @@ int main(int argc, char *argv[argc + 1])
         perror("unable to init xdg");
         return EXIT_FAILURE;
     }
+
     const char *userDataDir = xdgDataHome(&handle);
+    char *dataDir;
+    asprintf(&dataDir, "%s/json-signer", userDataDir);
+
+    struct stat sb;
+    if (-1 == stat(dataDir, &sb)) {
+        if (0 != xdgMakePath(dataDir, S_IRWXU)) {
+            perror("unable to create directory");
+            return EXIT_FAILURE;
+        }
+    }
 
     char *secretKeyFile, *publicKeyFile;
     asprintf(&secretKeyFile, "%s/json-signer/secret.key", userDataDir);
@@ -34,7 +48,7 @@ int main(int argc, char *argv[argc + 1])
         secretKey = fopen(secretKeyFile, "w");
         FILE *publicKey = fopen(publicKeyFile, "w");
         if (NULL == secretKey || NULL == publicKey) {
-            // unable to open file(s) for writing
+            perror("unable to open files for writing");
             return EXIT_FAILURE;
         }
         // generate keys
