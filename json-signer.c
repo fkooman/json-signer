@@ -5,7 +5,7 @@
 #include <json.h>
 #include <time.h>
 #include <basedir.h>
-#include "base64.h"
+#include <resolv.h>
 
 int main(int argc, char *argv[argc + 1])
 {
@@ -110,14 +110,14 @@ int main(int argc, char *argv[argc + 1])
     crypto_sign_detached(sig, NULL, data, fsize, sk);
     free(data);
 
-    char *b64sig;
-    base64_encode(sig, crypto_sign_BYTES, &b64sig);
+    char b64[1024];
+    int enc_sig_len = b64_ntop(sig, crypto_sign_BYTES, b64, sizeof(b64));
     char signatureFile[BUF_SIZE];
     signatureFile[0] = 0;
     strncat(signatureFile, argv[1], BUF_SIZE);
     strncat(signatureFile, ".sig", BUF_SIZE);
     f = fopen(signatureFile, "w");
-    fwrite(b64sig, crypto_sign_BYTES, 1, f);
+    fwrite(b64, enc_sig_len, 1, f);
     fclose(f);
 
     return EXIT_SUCCESS;
