@@ -21,18 +21,9 @@ int main(int argc, char *argv[argc + 1])
     }
     const char *userDataDir = xdgDataHome(&handle);
 
-    // keyFiles
-    const size_t BUF_SIZE = 128;
-
-    char secretKeyFile[BUF_SIZE];
-    secretKeyFile[0] = 0;
-    char publicKeyFile[BUF_SIZE];
-    publicKeyFile[0] = 0;
-
-    strncat(secretKeyFile, userDataDir, BUF_SIZE);
-    strncat(secretKeyFile, "/json-signer/secret.key", BUF_SIZE);
-    strncat(publicKeyFile, userDataDir, BUF_SIZE);
-    strncat(publicKeyFile, "/json-signer/public.key", BUF_SIZE);
+    char *secretKeyFile, *publicKeyFile;
+    asprintf(&secretKeyFile, "%s/json-signer/secret.key", userDataDir);
+    asprintf(&publicKeyFile, "%s/json-signer/public.key", userDataDir);
 
     unsigned char pk[crypto_sign_PUBLICKEYBYTES];
     unsigned char sk[crypto_sign_SECRETKEYBYTES];
@@ -58,6 +49,9 @@ int main(int argc, char *argv[argc + 1])
         fread(sk, crypto_sign_SECRETKEYBYTES, 1, secretKey);
         fclose(secretKey);
     }
+
+    free(secretKeyFile);
+    free(publicKeyFile);
 
     // open the JSON file
     if (2 > argc) {
@@ -112,13 +106,13 @@ int main(int argc, char *argv[argc + 1])
 
     char b64[1024];
     int enc_sig_len = b64_ntop(sig, crypto_sign_BYTES, b64, sizeof(b64));
-    char signatureFile[BUF_SIZE];
-    signatureFile[0] = 0;
-    strncat(signatureFile, argv[1], BUF_SIZE);
-    strncat(signatureFile, ".sig", BUF_SIZE);
+
+    char *signatureFile;
+    asprintf(&signatureFile, "%s.sig", argv[1]);
     f = fopen(signatureFile, "w");
     fwrite(b64, enc_sig_len, 1, f);
     fclose(f);
+    free(signatureFile);
 
     return EXIT_SUCCESS;
 }
