@@ -78,7 +78,8 @@ int main(int argc, char *argv[argc + 1])
     long fsize = ftell(f);
     rewind(f);
 
-    char *string = malloc(fsize);
+    char *string = malloc(fsize + 1);
+    memset(string, 0, fsize + 1);
     fread(string, fsize, 1, f);
     fclose(f);
 
@@ -87,8 +88,6 @@ int main(int argc, char *argv[argc + 1])
     json_object_object_get_ex(jobj, "seq", &jobj2);
     int seq = json_object_get_int(jobj2);
     json_object_object_add(jobj, "seq", json_object_new_int(++seq));
-
-
 
     // calculate and format current time
     time_t t = time(NULL);
@@ -117,6 +116,9 @@ int main(int argc, char *argv[argc + 1])
     unsigned char sig[crypto_sign_BYTES];
     crypto_sign_detached(sig, NULL, data, fsize, sk);
     free(data);
+
+    // clear private key from memory
+    memset(sk, 0, crypto_sign_SECRETKEYBYTES);
 
     char b64[1024];
     int enc_sig_len = b64_ntop(sig, crypto_sign_BYTES, b64, sizeof(b64));
