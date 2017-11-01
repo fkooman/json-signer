@@ -1,9 +1,9 @@
-%global commit0 1958ba687fc65810dd60fbb3f0fab8632c8de75e
+%global commit0 c38638443cb5b82cde7ac6fc88a466b4fce8512b
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 
 Name:           json-signer
 Version:        1.0.0
-Release:        0.2%{?dist}
+Release:        0.3%{?dist}
 Summary:        JSON Signer written in C
 
 License:        MIT
@@ -34,6 +34,9 @@ EXPERIMENTAL reimplementation of php-json-signer in C.
 %doc README.md
 
 %changelog
+* Wed Nov 01 2017 François Kooman <fkooman@tuxed.net> - 1.0.0-0.3
+- rebuilt
+
 * Tue Oct 31 2017 François Kooman <fkooman@tuxed.net> - 1.0.0-0.2
 - rebuilt
 
