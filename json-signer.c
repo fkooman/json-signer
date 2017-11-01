@@ -10,6 +10,22 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+void update_seq_signed_at(struct json_object *jobj)
+{
+    struct json_object *jobj2;
+    json_object_object_get_ex(jobj, "seq", &jobj2);
+    int seq = json_object_get_int(jobj2);
+    json_object_object_add(jobj, "seq", json_object_new_int(++seq));
+
+    // calculate and format current time
+    time_t t = time(NULL);
+    char dateTimeStr[20];
+    strftime(dateTimeStr, 20, "%F %T", gmtime(&t));
+
+    json_object_object_add(jobj, "signed_at",
+                           json_object_new_string(dateTimeStr));
+}
+
 int main(int argc, char *argv[argc + 1])
 {
     if (sodium_init() < 0) {
@@ -24,6 +40,8 @@ int main(int argc, char *argv[argc + 1])
     }
 
     const char *userDataDir = xdgDataHome(&handle);
+/*    free(handle);*/
+
     char *dataDir;
     asprintf(&dataDir, "%s/json-signer", userDataDir);
 
@@ -34,6 +52,8 @@ int main(int argc, char *argv[argc + 1])
             return EXIT_FAILURE;
         }
     }
+
+    free(dataDir);
 
     char *secretKeyFile, *publicKeyFile;
     asprintf(&secretKeyFile, "%s/json-signer/secret.key", userDataDir);
@@ -83,25 +103,19 @@ int main(int argc, char *argv[argc + 1])
     fread(string, fsize, 1, f);
     fclose(f);
 
-    struct json_object *jobj, *jobj2;
+    struct json_object *jobj;
     jobj = json_tokener_parse(string);
-    json_object_object_get_ex(jobj, "seq", &jobj2);
-    int seq = json_object_get_int(jobj2);
-    json_object_object_add(jobj, "seq", json_object_new_int(++seq));
-
-    // calculate and format current time
-    time_t t = time(NULL);
-    char dateTimeStr[20];
-    strftime(dateTimeStr, 20, "%F %T", gmtime(&t));
-
-    json_object_object_add(jobj, "signed_at",
-                           json_object_new_string(dateTimeStr));
+    free(string);
+    update_seq_signed_at(jobj);
     const char *output = json_object_to_json_string(jobj);
 
     // write updated file
     f = fopen(argv[1], "w");
     fwrite(output, strlen(output), 1, f);
     fclose(f);
+
+    // free json
+    json_object_put(jobj);
 
     // sign it
     f = fopen(argv[1], "rb");
