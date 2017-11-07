@@ -26,6 +26,33 @@ void update_seq_signed_at(struct json_object *jobj)
                            json_object_new_string(dateTimeStr));
 }
 
+void update_json_file(const char *json_file)
+{
+    FILE *f = fopen(json_file, "rb");
+    fseek(f, 0, SEEK_END);
+    long fsize = ftell(f);
+    rewind(f);
+
+    char *string = malloc(fsize + 1);
+    memset(string, 0, fsize + 1);
+    fread(string, fsize, 1, f);
+    fclose(f);
+
+    struct json_object *jobj;
+    jobj = json_tokener_parse(string);
+    free(string);
+    update_seq_signed_at(jobj);
+    const char *output = json_object_to_json_string(jobj);
+
+    // write updated file
+    f = fopen(json_file, "w");
+    fwrite(output, strlen(output), 1, f);
+    fclose(f);
+
+    // free json
+    json_object_put(jobj);
+}
+
 int main(int argc, char *argv[argc + 1])
 {
     if (sodium_init() < 0) {
@@ -93,34 +120,12 @@ int main(int argc, char *argv[argc + 1])
         return EXIT_FAILURE;
     }
 
-    FILE *f = fopen(argv[1], "rb");
-    fseek(f, 0, SEEK_END);
-    long fsize = ftell(f);
-    rewind(f);
-
-    char *string = malloc(fsize + 1);
-    memset(string, 0, fsize + 1);
-    fread(string, fsize, 1, f);
-    fclose(f);
-
-    struct json_object *jobj;
-    jobj = json_tokener_parse(string);
-    free(string);
-    update_seq_signed_at(jobj);
-    const char *output = json_object_to_json_string(jobj);
-
-    // write updated file
-    f = fopen(argv[1], "w");
-    fwrite(output, strlen(output), 1, f);
-    fclose(f);
-
-    // free json
-    json_object_put(jobj);
+    update_json_file(argv[1]);
 
     // sign it
-    f = fopen(argv[1], "rb");
+    FILE *f = fopen(argv[1], "rb");
     fseek(f, 0, SEEK_END);
-    fsize = ftell(f);
+    size_t fsize = ftell(f);
     rewind(f);
 
     unsigned char *data = malloc(fsize);
