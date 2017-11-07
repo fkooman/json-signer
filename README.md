@@ -11,21 +11,17 @@ Install the required dependencies.
 
 ## Fedora
     
-    $ sudo dnf install json-c-devel libsodium-devel libxdg-basedir-devel \
-        meson git gcc
+    $ sudo dnf install json-c-devel libsodium-devel meson git gcc
 
 ## CentOS
     
-Enable EPEL repository first. It seems libxdg-basedir-devel is NOT available
-on CentOS :(
+Enable EPEL repository first.
 
-    $ sudo yum install json-c-devel libsodium-devel libxdg-basedir-devel \
-        meson git gcc
+    $ sudo yum install json-c-devel libsodium-devel meson git gcc
 
 ## Debian
 
-    $ sudo apt install libjson-c-dev libsodium-dev libxdg-basedir-dev \
-        build-essential meson git
+    $ sudo apt install libjson-c-dev libsodium-dev build-essential meson git
 
 # Building
 
