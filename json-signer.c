@@ -1,3 +1,7 @@
+/**
+ * indent -kr -i 4 -nut json-signer.c
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sodium.h>
@@ -51,6 +55,36 @@ void update_json_file(const char *json_file)
 
     // free json
     json_object_put(jobj);
+}
+
+void sign_json_file(const char *json_file, unsigned char *sk)
+{
+    // sign it
+    FILE *f = fopen(json_file, "r");
+    fseek(f, 0, SEEK_END);
+    size_t fsize = ftell(f);
+    rewind(f);
+
+    unsigned char *data = malloc(fsize);
+    fread(data, fsize, 1, f);
+    fclose(f);
+
+    unsigned char sig[crypto_sign_BYTES];
+    crypto_sign_detached(sig, NULL, data, fsize, sk);
+    free(data);
+
+    // clear private key from memory
+    memset(sk, 0, crypto_sign_SECRETKEYBYTES);
+
+    char b64[1024];
+    int enc_sig_len = b64_ntop(sig, crypto_sign_BYTES, b64, sizeof(b64));
+
+    char *signatureFile;
+    asprintf(&signatureFile, "%s.sig", json_file);
+    f = fopen(signatureFile, "w");
+    fwrite(b64, enc_sig_len, 1, f);
+    fclose(f);
+    free(signatureFile);
 }
 
 int main(int argc, char *argv[argc + 1])
@@ -121,33 +155,7 @@ int main(int argc, char *argv[argc + 1])
     }
 
     update_json_file(argv[1]);
-
-    // sign it
-    FILE *f = fopen(argv[1], "rb");
-    fseek(f, 0, SEEK_END);
-    size_t fsize = ftell(f);
-    rewind(f);
-
-    unsigned char *data = malloc(fsize);
-    fread(data, fsize, 1, f);
-    fclose(f);
-
-    unsigned char sig[crypto_sign_BYTES];
-    crypto_sign_detached(sig, NULL, data, fsize, sk);
-    free(data);
-
-    // clear private key from memory
-    memset(sk, 0, crypto_sign_SECRETKEYBYTES);
-
-    char b64[1024];
-    int enc_sig_len = b64_ntop(sig, crypto_sign_BYTES, b64, sizeof(b64));
-
-    char *signatureFile;
-    asprintf(&signatureFile, "%s.sig", argv[1]);
-    f = fopen(signatureFile, "w");
-    fwrite(b64, enc_sig_len, 1, f);
-    fclose(f);
-    free(signatureFile);
+    sign_json_file(argv[1], sk);
 
     return EXIT_SUCCESS;
 }
