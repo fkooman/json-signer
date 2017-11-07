@@ -8,11 +8,30 @@
 #include <string.h>
 #include <json.h>
 #include <time.h>
-#include <basedir.h>
-#include <basedir_fs.h>
 #include <resolv.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <libgen.h>
+
+char *get_xdg_data_home()
+{
+    // $XDG_DATA_HOME defines the base directory relative to which user 
+    // specific data files should be stored. If $XDG_DATA_HOME is either not 
+    // set or empty, a default equal to $HOME/.local/share should be used.
+    char *xdgDataHome = getenv("XDG_DATA_HOME");
+    if (NULL != xdgDataHome) {
+        return xdgDataHome;
+    }
+
+    char *homeDir = getenv("HOME");
+    if (NULL == homeDir) {
+        homeDir = "/";
+    }
+
+    asprintf(&xdgDataHome, "%s/.local/share", homeDir);
+
+    return xdgDataHome;
+}
 
 void update_seq_signed_at(struct json_object *jobj)
 {
@@ -57,6 +76,21 @@ void update_json_file(const char *json_file)
     json_object_put(jobj);
 }
 
+int mkdirr(char *dirName)
+{
+    if (0 == strcmp("/", dirName)) {
+        return 0;
+    }
+    char *dirNameCopy = strdup(dirName);
+    mkdirr(dirname(dirNameCopy));
+    struct stat sb;
+    if (-1 == stat(dirName, &sb)) {
+        return mkdir(dirName, S_IRWXU);
+    }
+
+    return 0;
+}
+
 void sign_json_file(const char *json_file, unsigned char *sk)
 {
     // sign it
@@ -93,32 +127,23 @@ int main(int argc, char *argv[argc + 1])
         perror("unable to initialize libsodium");
         return EXIT_FAILURE;
     }
-    // check if private key exists
-    xdgHandle handle;
-    if (!xdgInitHandle(&handle)) {
-        perror("unable to init xdg");
+
+    char *dataDir = NULL;
+    asprintf(&dataDir, "%s/json-signer", get_xdg_data_home());
+
+    if (-1 == mkdirr(dataDir)) {
+        perror("unable to create directory");
         return EXIT_FAILURE;
     }
 
-    const char *userDataDir = xdgDataHome(&handle);
-/*    free(handle);*/
 
-    char *dataDir;
-    asprintf(&dataDir, "%s/json-signer", userDataDir);
-
-    struct stat sb;
-    if (-1 == stat(dataDir, &sb)) {
-        if (0 != xdgMakePath(dataDir, S_IRWXU)) {
-            perror("unable to create directory");
-            return EXIT_FAILURE;
-        }
-    }
-
-    free(dataDir);
 
     char *secretKeyFile, *publicKeyFile;
-    asprintf(&secretKeyFile, "%s/json-signer/secret.key", userDataDir);
-    asprintf(&publicKeyFile, "%s/json-signer/public.key", userDataDir);
+    asprintf(&secretKeyFile, "%s/secret.key", dataDir);
+    asprintf(&publicKeyFile, "%s/public.key", dataDir);
+
+
+    free(dataDir);
 
     unsigned char pk[crypto_sign_PUBLICKEYBYTES];
     unsigned char sk[crypto_sign_SECRETKEYBYTES];
